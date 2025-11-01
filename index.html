@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compilador .texes a LaTeX</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 2em;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2em;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .editor, .resultado {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 1.5em;
+        }
+        h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        textarea, pre {
+            width: 100%;
+            min-height: 400px;
+            box-sizing: border-box; /* Para que el padding no afecte el ancho */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            padding: 10px;
+        }
+        pre {
+            background-color: #fafafa;
+            white-space: pre-wrap; /* Para que el texto se ajuste */
+            word-wrap: break-word;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1em;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #error-msg {
+            color: #d93025;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Compilador .texes a LaTeX</h1>
+    <div class="container">
+        <div class="editor">
+            <h2>Código Fuente (.texes)</h2>
+            <textarea id="codigoFuente" rows="20" placeholder="documento_inicio;
+titulo('Mi Documento');
+...
+documento_fin;"></textarea>
+            <button id="botonCompilar">Compilar</button>
+            <div id="error-msg"></div>
+        </div>
+        <div class="resultado">
+            <h2>Resultado (LaTeX)</h2>
+            <pre id="resultadoLatex"><code>Tu código LaTeX aparecerá aquí...</code></pre>
+        </div>
+    </div>
+
+    <script>
+        // Este es el JavaScript que conecta el Frontend con el Backend
+        
+        document.getElementById('botonCompilar').addEventListener('click', async () => {
+            const codigoFuente = document.getElementById('codigoFuente').value;
+            const resultadoLatex = document.getElementById('resultadoLatex');
+            const errorMsg = document.getElementById('error-msg');
+            const boton = document.getElementById('botonCompilar');
+
+            // Limpiamos resultados anteriores
+            resultadoLatex.textContent = 'Compilando...';
+            errorMsg.textContent = '';
+            boton.disabled = true;
+            boton.textContent = 'Procesando...';
+            
+            try {
+                // Hacemos la llamada "fetch" a nuestro servidor Flask
+                const respuesta = await fetch('https://mi-compilador-texes.onrender.com/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ codigo: codigoFuente })
+                });
+
+                if (respuesta.ok) {
+                    // Si todo salió bien (HTTP 200-299)
+                    const latex = await respuesta.text();
+                    resultadoLatex.textContent = latex;
+                } else {
+                    // Si el servidor nos dio un error (HTTP 400, 500)
+                    const error = await respuesta.json();
+                    resultadoLatex.textContent = 'Error al compilar.';
+                    errorMsg.textContent = error.error || 'Error desconocido';
+                }
+
+            } catch (error) {
+                // Si no se pudo ni conectar con el servidor
+                console.error('Error de conexión:', error);
+                resultadoLatex.textContent = 'Error de conexión.';
+                errorMsg.textContent = 'No se pudo conectar con el servidor. ¿Está ejecutándose?';
+            } finally {
+                // Reactivamos el botón
+                boton.disabled = false;
+                boton.textContent = 'Compilar';
+            }
+        });
+    </script>
+
+</body>
+</html>
