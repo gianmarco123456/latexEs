@@ -108,7 +108,7 @@ documento_fin;"></textarea>
             
             try {
                 // Hacemos la llamada "fetch" a nuestro servidor Flask
-                const respuesta = await fetch('https://mi-compilador-texes.onrender.com/', {
+                const respuesta = await fetch('https://mi-compilador-texes.onrender.com', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -141,4 +141,5 @@ documento_fin;"></textarea>
     </script>
 
 </body>
+
 </html>
